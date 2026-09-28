@@ -21,7 +21,7 @@ function load() {
 		push: false,
 		hideInstall: false,
 		me: null,
-		qrKind: "card",
+		qrPick: null,
 		contacts: [],
 	};
 	try {
@@ -259,7 +259,7 @@ document.addEventListener("click", (e) => {
 		renderSettings();
 		scheduleSync();
 	} else if (t.dataset.kind) {
-		state.qrKind = t.dataset.kind;
+		state.qrPick = t.dataset.kind;
 		save();
 		showMyQr();
 	}
@@ -365,25 +365,27 @@ function qrPayload(kind) {
 
 async function showMyQr() {
 	const kinds = myQrKinds();
-	if (!kinds.some(([k]) => k === state.qrKind)) state.qrKind = "card";
-	const { text, caption } = qrPayload(state.qrKind);
+	// WhatsApp first: one scan opens a chat, and their first message gives you their number too.
+	const has = (k) => kinds.some(([x]) => x === k);
+	const kind = has(state.qrPick) ? state.qrPick : has("whatsapp") ? "whatsapp" : "card";
+	const { text, caption } = qrPayload(kind);
 	$("#qr-title").textContent = state.me.name;
 	$("#qr-body").innerHTML = `
 		<div class="seg qr-seg" role="group" aria-label="What the code shares">
-			${kinds.map(([k, label]) => `<button data-kind="${k}" aria-pressed="${k === state.qrKind}">${label}</button>`).join("")}
+			${kinds.map(([k, label]) => `<button data-kind="${k}" aria-pressed="${k === kind}">${label}</button>`).join("")}
 		</div>
-		<div class="qr-box" id="qr-box" role="img" aria-label="QR code: ${esc(kinds.find(([k]) => k === state.qrKind)[1])}"></div>
+		<div class="qr-box" id="qr-box" role="img" aria-label="QR code: ${esc(kinds.find(([k]) => k === kind)[1])}"></div>
 		<p class="qr-caption">${esc(caption)}</p>
 		<p class="qr-hint">${
-			state.qrKind === "card"
+			kind === "card"
 				? "Any phone camera can scan this and save you as a contact. In this app, the camera button adds you to their People list."
-				: state.qrKind === "whatsapp"
-					? "Opens a WhatsApp chat with you."
+				: kind === "whatsapp"
+					? "Their camera opens a WhatsApp chat with you. When they say hi, you have their number too."
 					: "Opens a new email to you."
 		}</p>
 		<button class="btn qr-edit" data-edit-me>Edit my details</button>`;
 	// A phone screen is a clean surface, so low error correction keeps the dense contact card easy to scan.
-	$("#qr-box").innerHTML = await qrSvg(text, state.qrKind === "card" ? "L" : "M");
+	$("#qr-box").innerHTML = await qrSvg(text, kind === "card" ? "L" : "M");
 }
 
 function showMyForm() {
@@ -487,6 +489,11 @@ function parseContact(raw) {
 		}
 		return c;
 	}
+	if (/^https?:\/\/wa\.me\/qr\//i.test(text)) {
+		return { ...c, url: text, hint: "This is a WhatsApp contact QR. WhatsApp hides the number in it, so add their name, and tap WhatsApp later to open the chat." };
+	}
+	const shared = readCardLink(text);
+	if (shared) return { ...c, ...shared };
 	const wa = text.match(/^https?:\/\/(?:api\.)?wa\.me\/(\d{6,15})/i) || text.match(/whatsapp\.com\/send\/?\?phone=(\d{6,15})/i);
 	if (wa) return { ...c, phone: `+${wa[1]}` };
 	if (/^mailto:/i.test(text)) return { ...c, email: decodeURIComponent(text.slice(7).split("?")[0]) };
@@ -630,6 +637,7 @@ function handleScan(text) {
 function showContactForm(c, heading) {
 	$("#scan-title").textContent = heading;
 	$("#scan-body").innerHTML = `
+		${c.hint ? `<p class="form-intro">${esc(c.hint)}</p>` : ""}
 		<form id="contact-form" class="card-form" novalidate>
 			<input type="hidden" name="cid" value="${esc(c.id || "")}">
 			${FIELDS.map(
@@ -649,20 +657,135 @@ function saveScanned({ cid, ...data }) {
 		$("#contact-error").textContent = "Add at least a name, a number, an email or a link.";
 		return;
 	}
-	const existing = cid && state.contacts.find((x) => x.id === cid);
-	if (existing) Object.assign(existing, data);
+	let saved = cid && state.contacts.find((x) => x.id === cid);
+	const isNew = !saved;
+	if (saved) Object.assign(saved, data);
 	else {
-		const dup = state.contacts.find(
+		saved = state.contacts.find(
 			(x) => (data.email && x.email === data.email) || (data.phone && waDigits(x.phone) && waDigits(x.phone) === waDigits(data.phone)),
 		);
-		if (dup) Object.assign(dup, { ...data, id: dup.id });
-		else state.contacts.unshift({ ...data, id: crypto.randomUUID?.() || String(Date.now()), added: Date.now() });
+		if (saved) Object.assign(saved, data);
+		else {
+			saved = { ...data, id: crypto.randomUUID?.() || String(Date.now()), added: Date.now() };
+			state.contacts.unshift(saved);
+		}
 	}
 	save();
-	$("#scan").close();
 	state.view = "people";
 	render();
 	scrollTo({ top: 0 });
+	if (isNew) showShareBack(saved, `Saved ${saved.name || "contact"}`);
+	else $("#scan").close();
+}
+
+// ---------------------------------------------------------------- sharing back
+
+/** Your card as a link. The card rides in the #fragment, which browsers never send to the server. */
+function cardLink(me) {
+	const short = { n: me.name, r: me.role, o: me.org, p: me.phone, e: me.email, u: me.url };
+	for (const k of Object.keys(short)) if (!short[k]) delete short[k];
+	const bytes = new TextEncoder().encode(JSON.stringify(short));
+	const b64 = btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+	return `${location.origin}/#card=${b64}`;
+}
+
+function readCardLink(text) {
+	const m = String(text || "").match(/#card=([A-Za-z0-9_-]+)/);
+	if (!m) return null;
+	try {
+		const bin = atob(m[1].replace(/-/g, "+").replace(/_/g, "/"));
+		const j = JSON.parse(new TextDecoder().decode(Uint8Array.from(bin, (ch) => ch.charCodeAt(0))));
+		const str = (v) => (typeof v === "string" ? v.slice(0, 200) : "");
+		const c = { name: str(j.n), role: str(j.r), org: str(j.o), phone: str(j.p), email: str(j.e), url: str(j.u) };
+		return c.name || c.phone || c.email || c.url ? c : null;
+	} catch {
+		return null;
+	}
+}
+
+function shareMessage(to) {
+	const me = state.me;
+	const first = String(to.name || "").split(/\s+/)[0];
+	return [
+		`${first ? `Hi ${first}, good` : "Good"} to meet you at TGG Live. My details:`,
+		"",
+		[me.name, [me.role, me.org].filter(Boolean).join(", "), me.phone, me.email, me.url].filter(Boolean).join("\n"),
+		"",
+		`Save me in one tap: ${cardLink(me)}`,
+	].join("\n");
+}
+
+function showShareBack(c, heading) {
+	$("#scan-title").textContent = heading;
+	if (!state.me) {
+		$("#scan-body").innerHTML = `
+			<p class="form-intro">To give ${esc(c.name || "them")} your details too, set up your contact card first. It takes a few seconds and stays on this phone.</p>
+			<div class="stack"><button class="btn primary" data-setup-card>Set up my card</button><button class="btn" data-done>Done</button></div>`;
+		return;
+	}
+	const msg = encodeURIComponent(shareMessage(c));
+	const wa = waDigits(c.phone);
+	const sms = c.phone ? c.phone.replace(/[^\d+]/g, "") : "";
+	const links = [
+		wa && `<a class="btn" href="https://wa.me/${wa}?text=${msg}" target="_blank" rel="noopener">Send my details on WhatsApp</a>`,
+		c.email && `<a class="btn" href="mailto:${esc(c.email)}?subject=${encodeURIComponent("Good to meet you at TGG Live")}&body=${msg}">Send my details by email</a>`,
+		// "?&body=" is the form that both iOS and Android Messages accept.
+		sms && `<a class="btn" href="sms:${esc(sms)}?&body=${msg}">Send my details by text</a>`,
+	].filter(Boolean);
+	$("#scan-body").innerHTML = `
+		<p class="form-intro">Give ${esc(c.name || "them")} your details too:</p>
+		<div class="stack">
+			<button class="btn primary" data-show-mine>Show them my QR</button>
+			${links.join("")}
+			${links.length ? "" : '<p class="form-intro">They shared no number or email, so the QR is the way to do it.</p>'}
+			<button class="btn ghost" data-done>Done</button>
+		</div>`;
+}
+
+/** Someone sent you their card as a link. */
+function showReceivedCard(c) {
+	$("#scan").showModal();
+	$("#scan-title").textContent = c.name || "Shared contact";
+	const wa = waDigits(c.phone);
+	$("#scan-body").innerHTML = `
+		<p class="form-intro">${esc([c.role, c.org].filter(Boolean).join(", "))}</p>
+		<ul class="received">${[c.phone, c.email, c.url].filter(Boolean).map((v) => `<li>${esc(v)}</li>`).join("")}</ul>
+		<div class="stack">
+			<button class="btn primary" data-received="vcf">Add to Contacts</button>
+			<button class="btn" data-received="people">Save to People in this app</button>
+			${wa ? `<a class="btn" href="https://wa.me/${wa}" target="_blank" rel="noopener">Message on WhatsApp</a>` : ""}
+			<button class="btn ghost" data-done>Close</button>
+		</div>
+		<p class="qr-hint">On iPhone, a link opens in Safari, which keeps separate storage from the Home Screen app. Add to Contacts works everywhere.</p>`;
+	received = { ...c, note: "Shared their details after TGG Live 2026" };
+}
+
+let received = null;
+
+document.addEventListener("click", (e) => {
+	const t = e.target.closest("button");
+	if (!t) return;
+	if (t.hasAttribute("data-done")) $("#scan").close();
+	else if (t.hasAttribute("data-show-mine")) {
+		$("#scan").close();
+		$("#open-qr").click();
+	} else if (t.hasAttribute("data-setup-card")) {
+		$("#scan").close();
+		$("#open-qr").click();
+	} else if (t.dataset.received === "vcf" && received) {
+		downloadVcf([received], `${(received.name || "contact").replace(/[^\w-]+/g, "-")}.vcf`);
+	} else if (t.dataset.received === "people" && received) {
+		saveScanned({ cid: "", ...received });
+	}
+});
+
+function openSharedCard() {
+	if (!location.hash.startsWith("#card=")) return false;
+	const c = readCardLink(location.hash);
+	// Drop the card from the address bar so a reload or a shared screenshot does not carry it.
+	history.replaceState(null, "", location.pathname);
+	if (c) showReceivedCard(c);
+	return true;
 }
 
 function openScanner({ manual = false } = {}) {
@@ -718,7 +841,8 @@ function renderPeople() {
 					wa && `<a class="chip" href="https://wa.me/${wa}" target="_blank" rel="noopener">WhatsApp</a>`,
 					c.phone && `<a class="chip" href="tel:${esc(c.phone.replace(/\s/g, ""))}">Call</a>`,
 					c.email && `<a class="chip" href="mailto:${esc(c.email)}">Email</a>`,
-					c.url && `<a class="chip" href="${esc(normaliseUrl(c.url))}" target="_blank" rel="noopener">${/linkedin\./i.test(c.url) ? "LinkedIn" : "Link"}</a>`,
+					c.url && `<a class="chip" href="${esc(normaliseUrl(c.url))}" target="_blank" rel="noopener">${/linkedin\./i.test(c.url) ? "LinkedIn" : /wa\.me\/qr\//i.test(c.url) ? "WhatsApp" : "Link"}</a>`,
+					`<button class="chip" data-contact="${c.id}" data-act="send">Send my details</button>`,
 					`<button class="chip" data-contact="${c.id}" data-act="vcf">Save to phone</button>`,
 					`<button class="chip" data-contact="${c.id}" data-act="edit">Edit</button>`,
 					`<button class="chip danger" data-contact="${c.id}" data-act="delete">Delete</button>`,
@@ -739,7 +863,10 @@ function renderPeople() {
 function contactAction(id, act, button) {
 	const c = state.contacts.find((x) => x.id === id);
 	if (!c) return;
-	if (act === "vcf") downloadVcf([c], `${(c.name || "contact").replace(/[^\w-]+/g, "-")}.vcf`);
+	if (act === "send") {
+		$("#scan").showModal();
+		showShareBack(c, c.name || "Send my details");
+	} else if (act === "vcf") downloadVcf([c], `${(c.name || "contact").replace(/[^\w-]+/g, "-")}.vcf`);
 	else if (act === "edit") {
 		$("#scan").showModal();
 		showContactForm(c, "Edit contact");
@@ -935,6 +1062,7 @@ for (const d of document.querySelectorAll("dialog")) {
 // ---------------------------------------------------------------- boot
 
 function focusHash() {
+	if (openSharedCard()) return;
 	const id = decodeURIComponent(location.hash.slice(1));
 	if (!id || !agenda) return;
 	const day = agenda.days.find((d) => d.items.some((i) => i.id === id));

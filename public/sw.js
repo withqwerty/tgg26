@@ -1,5 +1,5 @@
 // Offline shell (conference wi-fi) and push display.
-const CACHE = "tgg26-v4";
+const CACHE = "tgg26-v5";
 const SHELL = ["/", "/app.js", "/agenda.json", "/manifest.webmanifest", "/icon-192.png", "/wq-mark.svg", "/wq-mark-dark.svg", "/vendor/qrcode.mjs", "/vendor/jsqr.mjs"];
 
 self.addEventListener("install", (e) => {

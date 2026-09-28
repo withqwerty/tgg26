@@ -9,7 +9,8 @@ Add it to your phone's home screen and it works like an app:
 - **Reminders**: a push notification before each starred session (iPhone: the app must be opened from the home screen). A calendar (.ics) export is the fallback.
 - **Notes**: a notes box on every session.
 - **Your contact card**: enter your name, role, club, mobile, email and link once. The app draws QR codes for a contact card (any phone camera can save it to contacts), a WhatsApp chat and an email.
-- **Scan people**: the camera button reads someone else's code into your People list, noting the session you met in. You can export contacts as .vcf.
+- **Scan people**: the camera button reads someone else's code (a contact card, WhatsApp or email QR, or a LinkedIn link) into your People list, noting the session you met in. You can export contacts as .vcf.
+- **Swap both ways**: after you save someone, the app offers "Show them my QR", or sends them your details by WhatsApp, email or text. The message has a link that opens your card with "Add to Contacts". The card rides in the URL's `#fragment`, which browsers never send to the server, and the recipient does not need the app.
 
 ## Privacy
 
