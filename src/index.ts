@@ -65,12 +65,24 @@ function json(data: unknown, headers: Record<string, string> = {}, status = 200)
 	});
 }
 
+function validPushEndpoint(endpoint: string): boolean {
+	try {
+		const url = new URL(endpoint);
+		if (url.protocol !== "https:" || url.username || url.password || url.port) return false;
+		const host = url.hostname;
+		return host === "fcm.googleapis.com" || host === "updates.push.services.mozilla.com" ||
+			host.endsWith(".push.apple.com") || host === "notify.windows.com" || host.endsWith(".notify.windows.com");
+	} catch {
+		return false;
+	}
+}
+
 async function readSubscription(body: unknown): Promise<{ id: string; sub: PushSubscription }> {
 	const sub = (body as { subscription?: PushSubscription })?.subscription;
 	if (
 		!sub ||
 		typeof sub.endpoint !== "string" ||
-		!sub.endpoint.startsWith("https://") ||
+		!validPushEndpoint(sub.endpoint) ||
 		sub.endpoint.length > 1000 ||
 		typeof sub.keys?.p256dh !== "string" ||
 		typeof sub.keys?.auth !== "string"
@@ -147,13 +159,14 @@ async function push(
 	sub: PushSubscription,
 	data: { title: string; body: string; tag: string; url: string },
 ): Promise<Response> {
+	if (!validPushEndpoint(sub.endpoint)) throw new BadRequest("Unsupported push endpoint");
 	const vapid: VapidKeys = {
 		subject: env.VAPID_SUBJECT,
 		publicKey: env.VAPID_PUBLIC_KEY,
 		privateKey: env.VAPID_PRIVATE_KEY,
 	};
 	const payload = await buildPushPayload({ data, options: { ttl: 900, urgency: "high" } }, sub, vapid);
-	return fetch(sub.endpoint, payload);
+	return fetch(sub.endpoint, { ...payload, redirect: "error" });
 }
 
 type DueRow = {

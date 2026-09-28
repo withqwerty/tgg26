@@ -48,7 +48,7 @@ const isStarred = (id) => state.starred.includes(id);
 // ---------------------------------------------------------------- rendering
 
 function renderTabs() {
-	const tabs = agenda.days
+	const tabs = (agenda?.days || [])
 		.map((d) => {
 			const date = new Date(`${d.date}T12:00:00${UK_OFFSET}`).toLocaleDateString("en-GB", {
 				weekday: "short",
@@ -78,6 +78,10 @@ function clashes(day, item) {
 function renderList() {
 	if (state.view === "people") {
 		$("#list").innerHTML = renderPeople();
+		return;
+	}
+	if (!agenda) {
+		$("#list").innerHTML = `<p class="empty">Could not load the agenda. Check your connection and reload.</p>`;
 		return;
 	}
 	const day = agenda.days.find((d) => d.id === state.day);
@@ -155,7 +159,7 @@ function card(day, item, { past, live }) {
 		live ? `<span class="k-now">Now</span>` : "",
 		`<span class="${item.kind === "fringe" ? "k-fringe" : ""}">${KINDS[item.kind] || ""}</span>`,
 		item.access ? `<span class="k-access">${esc(item.access)}</span>` : "",
-		note ? `<span class="note-flag">· Note</span>` : "",
+		`<span class="note-flag"${note ? "" : " hidden"}>· Note</span>`,
 		clash.length ? `<span class="k-clash">· Clashes with ${esc(clash[0].title.replace(/^Break-out: /, ""))}</span>` : "",
 	].join("");
 	return `<article class="${cls}" id="${item.id}">
@@ -282,11 +286,8 @@ document.addEventListener("input", (e) => {
 	if (v.trim()) state.notes[id] = v;
 	else delete state.notes[id];
 	save();
-});
-
-// Re-render on focus loss so the "Note" flag appears without stealing focus while typing.
-document.addEventListener("focusout", (e) => {
-	if (e.target.dataset?.note) renderList();
+	const flag = document.getElementById(id)?.querySelector(".note-flag");
+	if (flag) flag.hidden = !state.notes[id];
 });
 
 // ---------------------------------------------------------------- my card
@@ -315,7 +316,8 @@ async function qrSvg(text, level = "M") {
 	return q.createSvgTag({ cellSize: 4, margin: 8, scalable: true });
 }
 
-const vEsc = (v) => String(v).replace(/\\/g, "\\\\").replace(/\n/g, "\\n").replace(/([,;])/g, "\\$1");
+const vEsc = (v) => String(v).replace(/\\/g, "\\\\").replace(/\r\n|\r|\n/g, "\\n").replace(/([,;])/g, "\\$1");
+const vSingleLine = (v) => String(v).replace(/[\r\n]/g, "");
 
 function toVcard(c) {
 	const parts = String(c.name || "").trim().split(/\s+/);
@@ -323,9 +325,9 @@ function toVcard(c) {
 	const lines = ["BEGIN:VCARD", "VERSION:3.0", `FN:${vEsc(c.name)}`, `N:${vEsc(last)};${vEsc(parts.join(" "))};;;`];
 	if (c.org) lines.push(`ORG:${vEsc(c.org)}`);
 	if (c.role) lines.push(`TITLE:${vEsc(c.role)}`);
-	if (c.phone) lines.push(`TEL;TYPE=CELL:${c.phone}`);
-	if (c.email) lines.push(`EMAIL:${c.email}`);
-	if (c.url) lines.push(`URL:${c.url}`);
+	if (c.phone) lines.push(`TEL;TYPE=CELL:${vSingleLine(c.phone)}`);
+	if (c.email) lines.push(`EMAIL:${vSingleLine(c.email)}`);
+	if (c.url) lines.push(`URL:${vSingleLine(c.url)}`);
 	if (c.note) lines.push(`NOTE:${vEsc(c.note)}`);
 	lines.push("END:VCARD");
 	return lines.join("\r\n");
@@ -664,8 +666,12 @@ function saveScanned({ cid, ...data }) {
 		saved = state.contacts.find(
 			(x) => (data.email && x.email === data.email) || (data.phone && waDigits(x.phone) && waDigits(x.phone) === waDigits(data.phone)),
 		);
-		if (saved) Object.assign(saved, data);
-		else {
+		if (saved) {
+			// A partial rescan may add details, but must not erase fields or personal notes.
+			for (const [key, value] of Object.entries(data)) {
+				if (value && (key !== "note" || !saved.note)) saved[key] = value;
+			}
+		} else {
 			saved = { ...data, id: crypto.randomUUID?.() || String(Date.now()), added: Date.now() };
 			state.contacts.unshift(saved);
 		}
@@ -785,6 +791,12 @@ function openSharedCard() {
 	// Drop the card from the address bar so a reload or a shared screenshot does not carry it.
 	history.replaceState(null, "", location.pathname);
 	if (c) showReceivedCard(c);
+	else {
+		received = null;
+		$("#scan").showModal();
+		$("#scan-title").textContent = "Could not read shared contact";
+		$("#scan-body").innerHTML = `<p role="alert">That shared contact link could not be read. It may have been cut short. Ask them to send it again.</p><button class="btn" data-done>Close</button>`;
+	}
 	return true;
 }
 
@@ -925,7 +937,7 @@ function renderSettings() {
 		help.textContent = "Notifications are blocked for this app. Allow them in Settings → Notifications, then come back.";
 		return;
 	}
-	toggle.disabled = false;
+	toggle.disabled = pushChanging;
 	toggle.textContent = state.push ? "Turn off" : "Turn on";
 	toggle.classList.toggle("primary", !state.push);
 	help.textContent = "Get a notification before each session you star.";
@@ -969,15 +981,32 @@ async function post(path, body) {
 }
 
 let syncTimer = null;
+let syncRunning = null;
+let syncPending = false;
+let pushChanging = false;
 function scheduleSync() {
 	if (!state.push) return;
 	clearTimeout(syncTimer);
 	syncTimer = setTimeout(sync, 500);
 }
 
-async function sync() {
+function sync() {
+	if (!state.push) return Promise.resolve();
+	syncPending = true;
+	if (syncRunning) return syncRunning;
+	syncRunning = (async () => {
+		while (syncPending && state.push) {
+			syncPending = false;
+			await syncOnce();
+		}
+	})().finally(() => { syncRunning = null; });
+	return syncRunning;
+}
+
+async function syncOnce() {
 	try {
 		const sub = await subscription({ create: false });
+		if (!state.push) return;
 		if (!sub) {
 			state.push = false;
 			save();
@@ -985,7 +1014,7 @@ async function sync() {
 			renderSettings();
 			return;
 		}
-		const { scheduled } = await post("/api/sync", { subscription: sub.toJSON(), lead: state.lead, sessions: state.starred });
+		const { scheduled } = await post("/api/sync", { subscription: sub.toJSON(), lead: state.lead, sessions: [...state.starred] });
 		setStatus(
 			scheduled.length
 				? `${scheduled.length} reminder${scheduled.length === 1 ? "" : "s"} scheduled, ${state.lead ? `${state.lead} min before` : "at the start"}.`
@@ -995,23 +1024,40 @@ async function sync() {
 	} catch (err) {
 		console.error(err);
 		setStatus("Could not reach the server. Your stars are saved; reminders will update when you are back online.", "err");
+		clearTimeout(syncTimer);
+		syncTimer = setTimeout(sync, 30_000);
 	}
 }
 
+addEventListener("online", scheduleSync);
+
 $("#push-toggle").addEventListener("click", async () => {
+	if (pushChanging) return;
+	pushChanging = true;
+	renderSettings();
 	if (state.push) {
+		// Stop queued updates and let an earlier write finish before deleting it.
+		state.push = false;
+		syncPending = false;
+		clearTimeout(syncTimer);
 		try {
+			await syncRunning;
 			const sub = await subscription({ create: false });
 			if (sub) {
-				await post("/api/unsubscribe", { subscription: sub.toJSON() }).catch(() => {});
-				await sub.unsubscribe();
+				await post("/api/unsubscribe", { subscription: sub.toJSON() });
+				// Server deletion succeeded even if browser cleanup fails.
+				await sub.unsubscribe().catch(console.error);
 			}
+			setStatus(sub
+				? "Reminders are off. The server no longer has anything from this phone."
+				: "Reminders are off. No active subscription was found on this phone.");
 		} catch (err) {
 			console.error(err);
+			state.push = true;
+			setStatus("Could not turn off reminders. Reconnect and try again.", "err");
 		}
-		state.push = false;
+		pushChanging = false;
 		save();
-		setStatus("Reminders are off. The server no longer has anything from this phone.");
 		render();
 		renderSettings();
 		return;
@@ -1033,6 +1079,9 @@ $("#push-toggle").addEventListener("click", async () => {
 	} catch (err) {
 		console.error(err);
 		setStatus(`Could not turn on reminders (${err.message}).`, "err");
+	} finally {
+		pushChanging = false;
+		renderSettings();
 	}
 });
 
@@ -1086,7 +1135,10 @@ function defaultDay() {
 
 async function boot() {
 	if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(console.error);
+	openSharedCard();
+	if (state.push) sync();
 	const res = await fetch("/agenda.json");
+	if (!res.ok) throw new Error(`Agenda request failed (${res.status})`);
 	agenda = await res.json();
 	if (!state.day || !agenda.days.some((d) => d.id === state.day) || !sessionStorage.getItem("tgg26:seen")) {
 		state.day = defaultDay();
@@ -1101,8 +1153,9 @@ async function boot() {
 		if (live) live.scrollIntoView({ block: "center" });
 	}
 	// Keep "now" current, and refresh a subscription the browser may have rotated.
-	setInterval(renderList, 60_000);
-	if (state.push) sync();
+	setInterval(() => {
+		if (!document.activeElement?.matches("textarea")) renderList();
+	}, 60_000);
 }
 
 addEventListener("hashchange", focusHash);
@@ -1114,5 +1167,5 @@ navigator.serviceWorker?.addEventListener("message", (e) => {
 
 boot().catch((err) => {
 	console.error(err);
-	$("#list").innerHTML = `<p class="empty">Could not load the agenda. Check your connection and reload.</p>`;
+	render();
 });

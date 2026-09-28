@@ -1,5 +1,5 @@
 // Offline shell (conference wi-fi) and push display.
-const CACHE = "tgg26-v5";
+const CACHE = "tgg26-v6";
 const SHELL = ["/", "/app.js", "/agenda.json", "/manifest.webmanifest", "/icon-192.png", "/wq-mark.svg", "/wq-mark-dark.svg", "/vendor/qrcode.mjs", "/vendor/jsqr.mjs"];
 
 self.addEventListener("install", (e) => {
@@ -21,18 +21,17 @@ self.addEventListener("fetch", (e) => {
 	const url = new URL(e.request.url);
 	if (e.request.method !== "GET" || url.origin !== location.origin || url.pathname.startsWith("/api/")) return;
 	const key = e.request.mode === "navigate" ? "/" : e.request;
-	e.respondWith(
-		caches.open(CACHE).then(async (cache) => {
-			const cached = await cache.match(key, { ignoreSearch: e.request.mode === "navigate" });
-			const fresh = fetch(e.request)
-				.then((res) => {
-					if (res.ok) cache.put(key, res.clone());
-					return res;
-				})
-				.catch(() => cached);
-			return cached || fresh;
-		}),
-	);
+	const cache = caches.open(CACHE);
+	const cached = cache.then((c) => c.match(key, { ignoreSearch: e.request.mode === "navigate" }));
+	const fresh = fetch(e.request);
+	// Register the entire refresh synchronously, even when the cached response wins.
+	e.waitUntil(fresh.then(async (res) => {
+		if (res.ok) {
+			const copy = res.clone();
+			await (await cache).put(key, copy);
+		}
+	}).catch(() => {}));
+	e.respondWith(cached.then((res) => res || fresh));
 });
 
 self.addEventListener("push", (e) => {
