@@ -73,7 +73,7 @@ test("push delivery disables redirects to destinations outside the provider", as
 		const response = await worker.fetch(request("/api/test", subscription("https://fcm.googleapis.com/fcm/send/token")), environment());
 		assert.equal(response.status, 200);
 		assert.equal(sent.url, "https://fcm.googleapis.com/fcm/send/token");
-		assert.equal(sent.options.redirect, "error");
+		assert.equal(sent.options.redirect, "manual");
 	} finally {
 		globalThis.fetch = previousFetch;
 	}

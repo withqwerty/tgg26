@@ -166,7 +166,8 @@ async function push(
 		privateKey: env.VAPID_PRIVATE_KEY,
 	};
 	const payload = await buildPushPayload({ data, options: { ttl: 900, urgency: "high" } }, sub, vapid);
-	return fetch(sub.endpoint, { ...payload, redirect: "error" });
+	// Workers reject redirect: "error"; "manual" returns a 3xx unfollowed, which the callers treat as a failure.
+	return fetch(sub.endpoint, { ...payload, redirect: "manual" });
 }
 
 type DueRow = {
