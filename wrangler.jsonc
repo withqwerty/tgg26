@@ -1,0 +1,15 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "tgg26",
+	"main": "src/index.ts",
+	"compatibility_date": "2026-09-01",
+	"assets": {
+		"directory": "./public",
+		"not_found_handling": "none"
+	},
+	"routes": [{ "pattern": "tgg26.withqwerty.com", "custom_domain": true }],
+	"triggers": { "crons": ["* * * * *"] },
+	"d1_databases": [{ "binding": "DB", "database_name": "tgg26", "database_id": "1376b4d7-28c6-470a-a295-ff3e0883d774" }],
+	"vars": { "VAPID_SUBJECT": "mailto:getintouch@withqwerty.com" },
+	"observability": { "enabled": true }
+}

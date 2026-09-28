@@ -1,0 +1,397 @@
+{
+	"event": "TGG Live 2026",
+	"venue": "Old Trafford, Manchester M16 0RA",
+	"source": "https://trainingground.guru/tgg-live/#agenda",
+	"days": [
+		{
+			"id": "d1",
+			"label": "Day One",
+			"date": "2026-09-29",
+			"items": [
+				{
+					"id": "twelve-breakfast",
+					"start": "07:30",
+					"end": "09:30",
+					"kind": "fringe",
+					"title": "Twelve breakfast",
+					"speakers": "David Sumpter, Dominic Jordan & the Twelve team, plus people from clubs",
+					"location": "Café Football, Hotel Football, 99 Sir Matt Busby Way, M16 0SZ",
+					"note": "Before the conference. Sign-up only, with the form. Free for TGG x Twelve Analytics members.",
+					"access": "Sign-up only",
+					"signup": {
+						"label": "Sign up for the breakfast",
+						"url": "https://docs.google.com/forms/d/e/1FAIpQLSdBCKfXrYPKnVoVgqKvaDegQl1Fq4Ls0bkEvQjd_z3AiJUoHA/viewform"
+					}
+				},
+				{
+					"id": "d1-registration",
+					"start": "08:30",
+					"end": "09:30",
+					"kind": "logistics",
+					"title": "Registration opens",
+					"location": "Registration desk, Old Trafford",
+					"note": "Security bag check and scanner first. Collect lanyard and badge; have the ticket email ready. Cloakroom available."
+				},
+				{
+					"id": "d1-welcome",
+					"start": "09:30",
+					"end": "09:45",
+					"kind": "host",
+					"title": "Welcome",
+					"speakers": "Sarah Mulkerrins & Simon Austin",
+					"room": "main"
+				},
+				{
+					"id": "d1-zeeman",
+					"start": "09:45",
+					"end": "10:15",
+					"kind": "talk",
+					"title": "Outsmarting the competition at Team Visma and AZ Alkmaar",
+					"speakers": "Merijn Zeeman (General Manager, AZ Alkmaar)",
+					"bio": "Spent 16 years in pro cycling, the last 10 as Sporting Director of Team Visma-Lease a Bike, taking it from the bottom of the World Tour rankings to winning all three Grand Tours in 2023. Culture-first, data-driven, and now applying it to football at AZ.",
+					"room": "main"
+				},
+				{
+					"id": "d1-sd-panel",
+					"start": "10:15",
+					"end": "11:00",
+					"kind": "panel",
+					"title": "Sporting Director panel",
+					"speakers": "Ross Wilson (Newcastle United), Simon Wilson (Sheffield Wednesday) & Leigh Bromby (Derby County)",
+					"bio": "Ross Wilson: Sporting Director at Newcastle since October 2025; previously Chief Football Officer at Forest and Sporting Director at Rangers. Simon Wilson: new Sporting Director at Sheffield Wednesday; took Stockport from the National League to League One. Leigh Bromby: Talent Acquisition Lead at Derby; previously Academy Manager to Sporting Director at Huddersfield.",
+					"room": "main"
+				},
+				{
+					"id": "d1-shaffner",
+					"start": "11:00",
+					"end": "11:30",
+					"kind": "talk",
+					"title": "The state of AI in sports",
+					"speakers": "Reed Shaffner (CTO, Teamworks)",
+					"bio": "CTO at Teamworks; previously CTO at TeamSnap and senior product roles at Microsoft. Teamworks now owns Zelus Analytics, Sportlogiq, Telemetry Sports and PFF's enterprise business.",
+					"room": "main"
+				},
+				{
+					"id": "d1-break-am",
+					"start": "11:30",
+					"end": "12:00",
+					"kind": "break",
+					"title": "Break"
+				},
+				{
+					"id": "d1-bailey",
+					"start": "12:00",
+					"end": "12:20",
+					"kind": "talk",
+					"title": "Elite performance markers: spotting the best talent early",
+					"speakers": "Liam Bailey (Football Analytics Consultant, SkillCorner)",
+					"bio": "Works with pro clubs at SkillCorner on custom metrics and analytics workflows for recruitment and performance analysis.",
+					"room": "main"
+				},
+				{
+					"id": "d1-webber",
+					"start": "12:20",
+					"end": "12:50",
+					"kind": "talk",
+					"title": "Inside Red Bull's global network: lessons from Japan",
+					"speakers": "Stuart Webber (Head of Sport, RB Omiya Ardija)",
+					"bio": "A decade as a Sporting Director in England, taking Norwich and Huddersfield to the Premier League. Now Head of Sport at RB Omiya Ardija.",
+					"room": "main"
+				},
+				{
+					"id": "d1-lunch",
+					"start": "12:50",
+					"end": "13:50",
+					"kind": "break",
+					"title": "Lunch"
+				},
+				{
+					"id": "d1-bo-sd",
+					"start": "13:50",
+					"end": "14:50",
+					"kind": "breakout",
+					"title": "Break-out: Sporting Directors",
+					"speakers": "In association with Gemini Sports",
+					"room": "sd"
+				},
+				{
+					"id": "d1-bo-recruitment",
+					"start": "13:50",
+					"end": "14:50",
+					"kind": "breakout",
+					"title": "Break-out: Recruitment",
+					"speakers": "In association with Teamworks",
+					"room": "recruitment"
+				},
+				{
+					"id": "d1-bo-analytics",
+					"start": "13:50",
+					"end": "14:50",
+					"kind": "breakout",
+					"title": "Break-out: Analytics",
+					"speakers": "In association with Twelve Football",
+					"room": "analytics"
+				},
+				{
+					"id": "d1-break-pm",
+					"start": "14:50",
+					"end": "15:20",
+					"kind": "break",
+					"title": "Break"
+				},
+				{
+					"id": "d1-young",
+					"start": "15:20",
+					"end": "15:40",
+					"kind": "talk",
+					"title": "Inside the AI that turns video into live football events",
+					"speakers": "James Young (VP of Sports Partnerships, Genius Sports)",
+					"bio": "Biomechanist with England Cricket, then built Deloitte's Global Performance Analytics practice, then led analysis & data at Sunderland from 2021. At Genius, looks after the Premier League, Belgian Pro League and UEFA.",
+					"room": "main"
+				},
+				{
+					"id": "d1-satikova",
+					"start": "15:40",
+					"end": "16:05",
+					"kind": "talk",
+					"title": "From data to decisions",
+					"speakers": "Sasha Satikova (Club Consultant, Ludonautics)",
+					"bio": "Club Consultant at Ian Graham's Ludonautics. Previously Lead Data Scientist at Tottenham and Senior Data Scientist at Manchester City.",
+					"room": "main"
+				},
+				{
+					"id": "d1-roberts",
+					"start": "16:05",
+					"end": "16:35",
+					"kind": "talk",
+					"title": "Creating the environments for people & performance to thrive",
+					"speakers": "Dr Claire-Marie Roberts (Director of Human Performance, McLaren Racing)",
+					"bio": "Performance Director at Coventry through their promotion to the Premier League. Seven years as Chartered Psychologist for the British Olympic Association, nearly nine at the Premier League (latterly Head of Elite Development).",
+					"room": "main"
+				},
+				{
+					"id": "d1-close",
+					"start": "16:35",
+					"end": "16:45",
+					"kind": "break",
+					"title": "Close"
+				},
+				{
+					"id": "d1-pitch",
+					"start": "16:45",
+					"end": "17:15",
+					"kind": "logistics",
+					"title": "Pitch viewing",
+					"speakers": "With a Manchester United staff member",
+					"location": "Meet at the conference registration desk"
+				},
+				{
+					"id": "d1-dinner",
+					"start": "18:30",
+					"end": "22:30",
+					"kind": "social",
+					"title": "Drinks reception & networking dinner",
+					"speakers": "Sponsored by Athoz · pre-booked tickets only",
+					"location": "Salford Grill, inside the stadium",
+					"note": "Drinks from 18:30, dinner and entertainment from 19:00. Smart casual. To check availability, ask the TGG events team. A small part of the exhibition area stays open between the close and dinner.",
+					"access": "Pre-booked only"
+				}
+			]
+		},
+		{
+			"id": "d2",
+			"label": "Day Two",
+			"date": "2026-09-30",
+			"items": [
+				{
+					"id": "d2-registration",
+					"start": "08:30",
+					"end": "09:30",
+					"kind": "logistics",
+					"title": "Registration opens",
+					"location": "Registration desk, Old Trafford",
+					"note": "Security bag check and scanner first. Collect lanyard and badge; have the ticket email ready. Cloakroom available."
+				},
+				{
+					"id": "d2-welcome",
+					"start": "09:30",
+					"end": "09:45",
+					"kind": "host",
+					"title": "Welcome & Day One recap",
+					"speakers": "Sarah Mulkerrins & Simon Austin",
+					"room": "main"
+				},
+				{
+					"id": "d2-quinn",
+					"start": "09:45",
+					"end": "09:55",
+					"kind": "talk",
+					"title": "Lessons from Day One",
+					"speakers": "Gareth Quinn (GM EMEA, Teamworks)",
+					"bio": "Co-founder of Kairos; now leads Teamworks sales across EMEA, including Teamworks Intelligence.",
+					"room": "main"
+				},
+				{
+					"id": "d2-bath",
+					"start": "09:55",
+					"end": "10:25",
+					"kind": "talk",
+					"title": "Thirty years at Chelsea: leadership is influence",
+					"speakers": "Neil Bath (ex-Director of Football Development, Chelsea)",
+					"bio": "30 years at Chelsea, including Academy Manager and Director of Development and Operations. Left in July 2024; now runs a leadership consultancy.",
+					"room": "main"
+				},
+				{
+					"id": "d2-academy-panel",
+					"start": "10:25",
+					"end": "11:05",
+					"kind": "panel",
+					"title": "Academy Director panel",
+					"speakers": "Stephen Torpey (Manchester United), David Rainford (Brentford) & Jon Hunter-Barrett (Wolves)",
+					"bio": "Torpey: Man Utd Academy Director since 2025, previously rebuilt Brentford's academy. Rainford: Brentford Academy Director since early 2026, previously the Premier League's Head of Education and Academy Player Care. Hunter-Barrett: 14 years and eight roles at Wolves.",
+					"room": "main"
+				},
+				{
+					"id": "d2-break-am",
+					"start": "11:05",
+					"end": "11:30",
+					"kind": "break",
+					"title": "Break"
+				},
+				{
+					"id": "d2-newton",
+					"start": "11:30",
+					"end": "11:55",
+					"kind": "talk",
+					"title": "Evolution of the coach-analyst",
+					"speakers": "Joe Newton (First Team Analyst, Sunderland)",
+					"bio": "Ex-Tranmere and Wrexham player. Six years as First Team Analyst at Brentford; pioneered the coach-analyst role at Tottenham in 2025/26.",
+					"room": "main"
+				},
+				{
+					"id": "d2-pittman",
+					"start": "11:55",
+					"end": "12:20",
+					"kind": "talk",
+					"title": "Matchday ready: Brentford Academy's approach to individual development",
+					"speakers": "JP Pittman (Individual Development Coach, Brentford)",
+					"bio": "Ex-Grimsby, Oxford and Wycombe. UEFA A Licence; leads Individual Development Plans at Brentford.",
+					"room": "main"
+				},
+				{
+					"id": "d2-marshall",
+					"start": "12:20",
+					"end": "12:45",
+					"kind": "talk",
+					"title": "Bundesliga to Premier League: leading elite performance",
+					"speakers": "Dr Robert Percy Marshall (Director of Medical & Performance, AFC Bournemouth)",
+					"bio": "Team Doctor at RB Leipzig 2018–2025 (two DFB Cups, a Champions League semi-final).",
+					"room": "main"
+				},
+				{
+					"id": "d2-ford",
+					"start": "12:45",
+					"end": "13:10",
+					"kind": "talk",
+					"title": "Building a performance department",
+					"speakers": "Paul Ford MBE (Performance Director, Norwich City)",
+					"bio": "15+ years as Director of Sport at the British Olympic Association. Joined Norwich in April 2026.",
+					"room": "main"
+				},
+				{
+					"id": "d2-lunch",
+					"start": "13:10",
+					"end": "14:10",
+					"kind": "break",
+					"title": "Lunch"
+				},
+				{
+					"id": "d2-bo-coaching",
+					"start": "14:10",
+					"end": "15:10",
+					"kind": "breakout",
+					"title": "Break-out: Coaching & Academies",
+					"speakers": "In association with Kognia Sports",
+					"room": "coaching"
+				},
+				{
+					"id": "d2-bo-performance",
+					"start": "14:10",
+					"end": "15:10",
+					"kind": "breakout",
+					"title": "Break-out: Performance",
+					"speakers": "In association with STATSports",
+					"room": "performance"
+				},
+				{
+					"id": "d2-break-pm",
+					"start": "15:10",
+					"end": "15:35",
+					"kind": "break",
+					"title": "Break"
+				},
+				{
+					"id": "d2-hill",
+					"start": "15:35",
+					"end": "16:00",
+					"kind": "talk",
+					"title": "AI & performance: transforming decision-making in elite sport",
+					"speakers": "Dr John Hill (Elite Performance Specialist, representing Orreco)",
+					"bio": "15+ years in high performance, including senior roles in the Saudi Pro League and at Liverpool.",
+					"room": "main"
+				},
+				{
+					"id": "d2-triangle",
+					"start": "16:00",
+					"end": "16:40",
+					"kind": "panel",
+					"title": "Leadership triangle: how CEO, Director of Football & Head Coach work together",
+					"speakers": "Stephen Pearce (CEO, Derby County), David Fox (Plymouth Argyle) & Steven Schumacher (Bolton Wanderers)",
+					"room": "main"
+				},
+				{
+					"id": "d2-close",
+					"start": "16:40",
+					"end": "16:50",
+					"kind": "break",
+					"title": "Close"
+				}
+			]
+		}
+	],
+	"rooms": {
+		"main": {
+			"label": "Main Room",
+			"colour": "#7b5446"
+		},
+		"sd": {
+			"label": "Sporting Directors",
+			"colour": "#f5211b"
+		},
+		"recruitment": {
+			"label": "Recruitment",
+			"colour": "#0a8cf0"
+		},
+		"analytics": {
+			"label": "Analytics",
+			"colour": "#1db554"
+		},
+		"coaching": {
+			"label": "Coaching & Academies",
+			"colour": "#8a847c"
+		},
+		"performance": {
+			"label": "Performance",
+			"colour": "#8a847c"
+		}
+	},
+	"info": [
+		"Bags are checked and you pass a security scanner on arrival.",
+		"Check in at the registration desk for your lanyard and name badge. Wear them at all times. Have your ticket confirmation email ready. There is a cloakroom.",
+		"Your badge lists your pre-selected break-out choices. Go to that session.",
+		"Wi-fi: OldTraffordWifi.",
+		"Dress code: smart casual, or club/federation attire.",
+		"Tea, coffee and biscuits on arrival and in breaks. Lunch is provided."
+	],
+	"slido": "https://app.sli.do/event/uwCvrZ2C5QJbJTsSdYd1B3/live/questions"
+}
